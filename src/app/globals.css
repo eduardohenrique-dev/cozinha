@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+
+  /* tokens do projeto */
+  --bg: #faf6f0;
+  --surface: #ffffff;
+  --primary: #9caf88;
+  --accent: #e8a87c;
+  --warn: #e8b84b;
+  --danger: #d98670;
+  --text: #3d3833;
+
+  /* canais RGB (opacidade via Tailwind). Derivados validados em WCAG AA:
+     texto >= 4.5:1 sobre --bg e --surface; bordas de controle >= 3:1.
+     Os tons *-strong existem porque as cores de preenchimento da paleta
+     (accent/warn/danger) sao claras demais para texto. */
+  --c-bg: 250 246 240;
+  --c-surface: 255 255 255;
+  --c-line: 234 225 214;
+  --c-line-strong: 150 138 125;
+  --c-primary: 156 175 136;
+  --c-primary-soft: 227 234 219;
+  --c-primary-deep: 91 109 80;
+  --c-accent: 232 168 124;
+  --c-accent-soft: 247 224 207;
+  --c-accent-strong: 174 89 31;
+  --c-warn: 232 184 75;
+  --c-warn-soft: 249 236 201;
+  --c-warn-strong: 137 100 17;
+  --c-danger: 217 134 112;
+  --c-danger-soft: 244 218 210;
+  --c-danger-strong: 165 69 44;
+  --c-text: 61 56 51;
+  --c-text-muted: 107 99 90;
+  --c-text-faint: 121 112 103;
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-bg font-sans text-text antialiased;
+    position: relative;
+    isolation: isolate;
+    min-height: 100dvh;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  /* grão de papel atrás do conteúdo */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.16;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 240px 240px;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-optical-sizing: auto;
+    font-variation-settings: "SOFT" 40, "WONK" 1;
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background: rgb(var(--c-accent) / 0.35);
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--c-primary));
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  /* números grandes: Fraunces itálico leve, algarismos tabulares */
+  .num-display {
+    @apply font-display italic;
+    font-weight: 320;
+    font-variation-settings: "SOFT" 60, "WONK" 0;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+  }
+
+  /* carregamento: brilho suave percorrendo a superficie, sem spinner */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgb(var(--c-surface) / 0.85), transparent);
+    animation: shimmer 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shimmer::after {
+      animation: none;
+    }
+  }
+
+  .surface-card {
+    @apply rounded-card bg-surface shadow-soft;
+  }
+}

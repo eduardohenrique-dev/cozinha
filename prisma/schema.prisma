@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Ingredient {
+  id              String   @id @default(cuid())
+  nome            String
+  unidade         String // "g" | "ml" | "un"
+  caloriasPor100g Float
+  proteina        Float    @default(0) // g por 100g/ml
+  carboidrato     Float    @default(0)
+  gordura         Float    @default(0)
+  estoqueAtual    Float    @default(0) // na unidade do ingrediente
+  estoqueMinimo   Float    @default(0)
+  categoria       String
+  pesoUnidadeG    Float? // só para unidade "un": gramas por unidade (ovo ≈ 50)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  receitas RecipeIngredient[]
+  consumos ConsumptionLog[]
+}
+
+model Recipe {
+  id          String   @id @default(cuid())
+  titulo      String
+  fotoUrl     String?
+  modoPreparo String
+  porcoes     Int      @default(1)
+  tags        String   @default("[]") // JSON array — SQLite não tem listas escalares
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ingredientes RecipeIngredient[]
+  consumos     ConsumptionLog[]
+}
+
+model RecipeIngredient {
+  recipeId     String
+  ingredientId String
+  quantidade   Float // na unidade do ingrediente, para a receita inteira (todas as porções)
+
+  recipe     Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  // excluir um ingrediente da despensa tira ele das receitas (o app avisa quais antes)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+
+  @@id([recipeId, ingredientId])
+}
+
+model ConsumptionLog {
+  id   String   @id @default(cuid())
+  data DateTime @default(now())
+
+  // Snapshot do que foi comido. Fica gravado no proprio log para que editar ou
+  // excluir a receita/ingrediente depois nao altere nem quebre o historico.
+  nome           String
+  caloriasTotais Float
+  proteina       Float  @default(0)
+  carboidrato    Float  @default(0)
+  gordura        Float  @default(0)
+  unidade        String? // "g" | "ml" | "un" para avulso; null quando e receita
+  fotoUrl        String?
+
+  porcoesConsumidas Float
+
+  // Referencias opcionais, so para navegacao e devolucao de estoque enquanto existirem.
+  recipeId     String?
+  recipe       Recipe?     @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  ingredientId String?
+  ingredient   Ingredient? @relation(fields: [ingredientId], references: [id], onDelete: SetNull)
+
+  @@index([data])
+}
+
+model WaterLog {
+  id           String   @id @default(cuid())
+  data         DateTime @default(now())
+  quantidadeMl Int
+
+  @@index([data])
+}
+
+model UserGoal {
+  id           Int @id @default(1)
+  metaCalorica Int @default(2000)
+  metaAguaMl   Int @default(2000)
+}
